@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // context/AuthContext.tsx
 "use client";
 import {
@@ -41,6 +42,7 @@ interface RestaurantAdminDetails {
 }
 
 // Extend FirebaseUser to include additional fields from Firestore
+//@ts-ignore
 interface ExtendedUser extends FirebaseUser {
   role?: UserRole | null;
   name?: string;

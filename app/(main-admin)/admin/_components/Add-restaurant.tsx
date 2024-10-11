@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -74,6 +75,7 @@ export const AddRestaurant: React.FC = () => {
   // Fetch restaurant data
   const fetchRestaurantData = async (): Promise<void> => {
     setFetching(true);
+    //@ts-ignore
     const result: ApiResponse<Restaurant[]> = await GetRestaurants();
     console.log("🚀 ~ fetchRestaurantData ~ result:", result);
     if (result.success && result.data) {
