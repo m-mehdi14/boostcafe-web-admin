@@ -21,9 +21,13 @@ import { doc, getDoc } from "firebase/firestore";
 // Define user roles
 type UserRole = "admin" | "restaurantAdmin";
 
-// Extend FirebaseUser to include role
+// Extend FirebaseUser to include additional fields from Firestore
 interface ExtendedUser extends FirebaseUser {
   role?: UserRole | null;
+  name?: string;
+  email?: string;
+  fcmToken?: string;
+  accountVerify?: string;
 }
 
 // Define types for the context
@@ -60,16 +64,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
           sameSite: "Strict",
         });
 
-        // Fetch role from Firestore
+        // Fetch user data from Firestore
         const userDocRef = doc(db, "users", currentUser.uid);
         const userDoc = await getDoc(userDocRef);
 
         let role: UserRole | null = null; // Default role is null
+        let name: string | undefined;
+        let email: string | undefined;
+        let fcmToken: string | undefined;
+        let accountVerify: string | undefined;
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           console.log("🚀 ~ unsubscribe ~ userData:", userData);
           role = userData.role as UserRole;
+          name = userData.name;
+          email = userData.email;
+          fcmToken = userData.fcmToken;
+          accountVerify = userData.accountVerify;
 
           // Ensure role is one of the allowed roles
           if (role !== "admin" && role !== "restaurantAdmin") {
@@ -78,11 +90,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } else {
           // Handle case where user document does not exist
           console.warn("User document does not exist in Firestore");
-          // Optionally, you might want to redirect or handle this scenario
         }
 
-        // Extend currentUser with role
-        const extendedUser: ExtendedUser = { ...currentUser, role };
+        // Extend currentUser with additional fields
+        const extendedUser: ExtendedUser = {
+          ...currentUser,
+          role,
+          name,
+          email,
+          fcmToken,
+          accountVerify,
+        };
 
         setUser(extendedUser);
       } else {
