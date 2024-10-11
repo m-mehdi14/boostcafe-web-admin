@@ -139,10 +139,10 @@ export default function RoleBasedContent() {
     <div>
       {content}
       {user && (
-        <div className="fixed bottom-8 right-8">
+        <div className="fixed bottom-8 right-8 z-20">
           <Button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white "
           >
             Logout
           </Button>
