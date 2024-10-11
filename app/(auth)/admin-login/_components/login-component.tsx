@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import {
   Form,
   FormControl,
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FirebaseError } from "firebase/app";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 // Define the schema using Zod
 const formSchema = z.object({
@@ -40,10 +41,38 @@ export function LoginComponent() {
     },
   });
 
+  const validateAdmin = async (email: string): Promise<boolean> => {
+    try {
+      const restaurantsRef = collection(db, "users");
+      const q = query(
+        restaurantsRef,
+        where("email", "==", email),
+        where("role", "==", "admin")
+      );
+      const querySnapshot = await getDocs(q);
+      console.log("🚀 ~ validate Admin  ~ querySnapshot:", querySnapshot);
+      return !querySnapshot.empty; // Returns true if a matching document is found
+    } catch (error) {
+      console.error("Error checking restaurant admin:", error);
+      return false;
+    }
+  };
+
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
 
     try {
+      // Validate if the user exists in the restaurants collection
+      const isAdmin = await validateAdmin(data.email);
+
+      if (!isAdmin) {
+        form.setError("root", {
+          type: "manual",
+          message: "You are not authorized to log in as a  Admin.",
+        });
+        setLoading(false);
+        return;
+      }
       // Sign in with Firebase Authentication
       await signInWithEmailAndPassword(auth, data.email, data.password);
       // Redirect to the admin dashboard

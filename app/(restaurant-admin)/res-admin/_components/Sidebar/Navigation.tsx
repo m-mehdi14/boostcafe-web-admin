@@ -14,27 +14,37 @@ export const Navigation = () => {
   const routes = [
     {
       label: "Home",
-      href: `/`,
+      href: `/res-admin`,
       icon: Fullscreen,
     },
     {
-      label: "Restaurant Management",
-      href: `/admin`,
+      label: "Profile Management",
+      href: `/res-admin/profile`,
+      icon: UserCircle,
+    },
+    {
+      label: "Menu Management",
+      href: `/res-admin/menu`,
       icon: UserCircle,
     },
     {
       label: "Order Management",
-      href: `/admin/order-management`,
-      icon: UserCircle,
-    },
-    {
-      label: "User Management",
-      href: `/admin/user-management`,
+      href: `/res-admin/order`,
       icon: ShieldBan,
     },
     {
-      label: "Setting",
-      href: `/admin/setting`,
+      label: "Analytics & Reports",
+      href: `/res-admin/analysis`,
+      icon: Users,
+    },
+    {
+      label: "Promotions Management",
+      href: `/res-admin/promotion`,
+      icon: Users,
+    },
+    {
+      label: "Reviews & Feedback",
+      href: `/res-admin/review`,
       icon: Users,
     },
   ];
