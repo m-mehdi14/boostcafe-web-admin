@@ -3,8 +3,11 @@
 import { RoleBasedRoute } from "@/lib/AuthContext/RoleBasedRoutes";
 import React from "react";
 import { AddRestaurant } from "./_components/Add-restaurant";
+import { getTotalRestaurants } from "@/actions/get-total-restaurants";
 
-const MainAdminPage = () => {
+const MainAdminPage = async () => {
+  const totalRestaurants = await getTotalRestaurants();
+  console.log("🚀 ~ MainAdminPage ~ totalRestaurants:", totalRestaurants);
   return (
     <>
       <RoleBasedRoute allowedRoles={["admin"]}>
@@ -25,7 +28,9 @@ const MainAdminPage = () => {
               <h2 className="text-sm font-medium text-gray-500">
                 Total Restaurants
               </h2>
-              <p className="mt-1 text-2xl font-bold text-gray-800">25</p>
+              <p className="mt-1 text-2xl font-bold text-gray-800">
+                {totalRestaurants.data ? totalRestaurants.data : 0}
+              </p>
             </div>
             <div className="p-5 bg-white rounded-lg shadow">
               <h2 className="text-sm font-medium text-gray-500">

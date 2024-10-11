@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Import the functions you need from the SDKs you need
-// @ts-expect-error
 import { initializeApp } from "firebase/app";
 // import {getAnalytics} from 'firebase/analytics';
 // import {getAuth} from 'firebase/auth';

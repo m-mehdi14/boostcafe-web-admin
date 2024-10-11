@@ -16,10 +16,29 @@ import {
 import Cookies from "js-cookie";
 import { app, db } from "../firebase";
 import { useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 // Define user roles
 type UserRole = "admin" | "restaurantAdmin";
+
+// Define restaurant admin fields
+interface RestaurantAdminDetails {
+  address: string;
+  adminId: string;
+  createdAt: string;
+  email: string;
+  name: string;
+  phone: string;
+  role: string;
+  status: string;
+}
 
 // Extend FirebaseUser to include additional fields from Firestore
 interface ExtendedUser extends FirebaseUser {
@@ -28,6 +47,7 @@ interface ExtendedUser extends FirebaseUser {
   email?: string;
   fcmToken?: string;
   accountVerify?: string;
+  restaurantDetails?: RestaurantAdminDetails | null; // For restaurant admin-specific details
 }
 
 // Define types for the context
@@ -45,6 +65,61 @@ const auth = getAuth(app);
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+// Fetch admin data from the "users" collection
+const fetchAdminData = async (userId: string) => {
+  const userDocRef = doc(db, "users", userId);
+  const userDoc = await getDoc(userDocRef);
+  if (userDoc.exists()) {
+    return userDoc.data();
+  }
+  return null;
+};
+
+// Fetch restaurant admin details from the "restaurants" collection
+const fetchRestaurantAdminDetails = async (
+  adminId: string
+): Promise<RestaurantAdminDetails | null> => {
+  const q = query(
+    collection(db, "restaurants"),
+    where("adminId", "==", adminId)
+  );
+  const querySnapshot = await getDocs(q);
+  if (!querySnapshot.empty) {
+    const restaurantData = querySnapshot.docs[0].data();
+    // Return only the required fields
+    return {
+      address: restaurantData.address,
+      adminId: restaurantData.adminId,
+      createdAt: restaurantData.createdAt,
+      email: restaurantData.email,
+      name: restaurantData.name,
+      phone: restaurantData.phone,
+      role: restaurantData.role,
+      status: restaurantData.status,
+    };
+  }
+  return null;
+};
+
+// Extend the user object with additional fields
+const getExtendedUser = (
+  currentUser: FirebaseUser,
+  role: UserRole | null,
+  name?: string,
+  email?: string,
+  fcmToken?: string,
+  accountVerify?: string,
+  restaurantDetails?: RestaurantAdminDetails | null
+): ExtendedUser => ({
+  ...currentUser,
+  role,
+  name,
+  email,
+  fcmToken,
+  accountVerify,
+  restaurantDetails,
+});
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
@@ -64,50 +139,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
           sameSite: "Strict",
         });
 
-        // Fetch user data from Firestore
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        let role: UserRole | null = null; // Default role is null
+        let role: UserRole | null = null;
         let name: string | undefined;
         let email: string | undefined;
         let fcmToken: string | undefined;
         let accountVerify: string | undefined;
+        let restaurantDetails: RestaurantAdminDetails | null = null;
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          console.log("🚀 ~ unsubscribe ~ userData:", userData);
-          role = userData.role as UserRole;
-          name = userData.name;
-          email = userData.email;
-          fcmToken = userData.fcmToken;
-          accountVerify = userData.accountVerify;
-
-          // Ensure role is one of the allowed roles
-          if (role !== "admin" && role !== "restaurantAdmin") {
-            role = null;
-          }
+        // First, try fetching admin data from the "users" collection
+        const adminData = await fetchAdminData(currentUser.uid);
+        if (adminData) {
+          role = "admin";
+          name = adminData.name;
+          email = adminData.email;
+          fcmToken = adminData.fcmToken;
+          accountVerify = adminData.accountVerify;
         } else {
-          // Handle case where user document does not exist
-          console.warn("User document does not exist in Firestore");
+          // If not found in "users", try fetching restaurant admin details
+          const restaurantData = await fetchRestaurantAdminDetails(
+            currentUser.uid
+          );
+          if (restaurantData) {
+            role = "restaurantAdmin";
+            name = restaurantData.name;
+            email = restaurantData.email;
+            restaurantDetails = restaurantData;
+          } else {
+            console.warn(
+              "User not found in both 'users' and 'restaurants' collections."
+            );
+          }
         }
 
-        // Extend currentUser with additional fields
-        const extendedUser: ExtendedUser = {
-          ...currentUser,
+        // Set the extended user object
+        const extendedUser = getExtendedUser(
+          currentUser,
           role,
           name,
           email,
           fcmToken,
           accountVerify,
-        };
-
+          restaurantDetails
+        );
         setUser(extendedUser);
       } else {
         // Handle logout
         Cookies.remove("session");
         setUser(null);
-        router.push("/admin/login");
+        router.push("/");
       }
       setLoading(false);
     });
@@ -119,7 +198,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await signOut(auth);
     Cookies.remove("session");
     setUser(null);
-    // Redirect to the login page
     router.push("/login");
   };
 

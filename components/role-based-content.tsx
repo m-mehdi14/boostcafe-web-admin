@@ -44,7 +44,7 @@ export default function RoleBasedContent() {
               </p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => router.push("/admin")}>
+              <Button onClick={() => router.push("/admin-login")}>
                 Go to Admin Dashboard
               </Button>
             </CardFooter>
@@ -96,9 +96,11 @@ export default function RoleBasedContent() {
             Please log in or sign up to enjoy more features.
           </p>
           <div className="flex gap-4 mt-6 justify-center">
-            <Button onClick={() => router.push("/login")}>Login</Button>
-            <Button variant="outline" onClick={() => router.push("/signup")}>
-              Sign Up
+            <Button onClick={() => router.push("/admin-login")}>
+              Admin Login
+            </Button>
+            <Button onClick={() => router.push("/res-admin-login")}>
+              Restaurant Login
             </Button>
           </div>
           {/* Add more public content here */}
