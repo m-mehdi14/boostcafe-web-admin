@@ -60,7 +60,7 @@ export const RestaurantAdminComponent: React.FC = () => {
             </Card>
 
             {/* Analytics and Reports */}
-            <Card className="bg-purple-50 p-6 rounded-lg shadow-md">
+            {/* <Card className="bg-purple-50 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-purple-600 mb-4">
                 Analytics & Reports
               </h2>
@@ -70,10 +70,10 @@ export const RestaurantAdminComponent: React.FC = () => {
               <Button className="bg-purple-600 text-white w-full">
                 View Analytics
               </Button>
-            </Card>
+            </Card> */}
 
             {/* Promotions Management */}
-            <Card className="bg-pink-50 p-6 rounded-lg shadow-md">
+            {/* <Card className="bg-pink-50 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-pink-600 mb-4">
                 Promotions Management
               </h2>
@@ -83,10 +83,10 @@ export const RestaurantAdminComponent: React.FC = () => {
               <Button className="bg-pink-600 text-white w-full">
                 Manage Promotions
               </Button>
-            </Card>
+            </Card> */}
 
             {/* Reviews & Feedback */}
-            <Card className="bg-indigo-50 p-6 rounded-lg shadow-md">
+            {/* <Card className="bg-indigo-50 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold text-indigo-600 mb-4">
                 Reviews & Feedback
               </h2>
@@ -96,7 +96,7 @@ export const RestaurantAdminComponent: React.FC = () => {
               <Button className="bg-indigo-600 text-white w-full">
                 View Feedback
               </Button>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </RoleBasedRoute>

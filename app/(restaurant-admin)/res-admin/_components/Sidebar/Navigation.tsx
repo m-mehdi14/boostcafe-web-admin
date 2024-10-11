@@ -2,7 +2,7 @@
 
 // import { useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { Fullscreen, Users, UserCircle, ShieldBan } from "lucide-react";
+import { Fullscreen, UserCircle, ShieldBan } from "lucide-react";
 import { NavItem, NavItemSkeleton } from "./nav-item";
 import { useAuth } from "@/lib/AuthContext/AuthContext";
 
@@ -32,21 +32,21 @@ export const Navigation = () => {
       href: `/res-admin/order`,
       icon: ShieldBan,
     },
-    {
-      label: "Analytics & Reports",
-      href: `/res-admin/analysis`,
-      icon: Users,
-    },
-    {
-      label: "Promotions Management",
-      href: `/res-admin/promotion`,
-      icon: Users,
-    },
-    {
-      label: "Reviews & Feedback",
-      href: `/res-admin/review`,
-      icon: Users,
-    },
+    // {
+    //   label: "Analytics & Reports",
+    //   href: `/res-admin/analysis`,
+    //   icon: Users,
+    // },
+    // {
+    //   label: "Promotions Management",
+    //   href: `/res-admin/promotion`,
+    //   icon: Users,
+    // },
+    // {
+    //   label: "Reviews & Feedback",
+    //   href: `/res-admin/review`,
+    //   icon: Users,
+    // },
   ];
 
   if (!user?.name) {

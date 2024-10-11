@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FirebaseError } from "firebase/app";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import Image from "next/image";
+import Logo from "@/public/boost-cafe.png";
 
 // Define the schema using Zod
 const formSchema = z.object({
@@ -98,10 +100,20 @@ export function LoginComponent() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-blue-300">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-stone-400 to-stone-800">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white/55 rounded-xl shadow-xl">
+        {/* Logo and Title */}
+        <div className=" w-full flex flex-col items-center justify-center">
+          <Image
+            src={Logo}
+            alt="Boost Cafe"
+            width={170}
+            height={170}
+            priority
+          />
+        </div>
         <h2 className="text-3xl font-extrabold text-center text-gray-800">
-          Admin Login
+          Management Login
         </h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -113,6 +125,7 @@ export function LoginComponent() {
                   placeholder="Enter your email"
                   disabled={loading}
                   {...form.register("email")}
+                  className=""
                 />
               </FormControl>
               <FormMessage>{form.formState.errors.email?.message}</FormMessage>
