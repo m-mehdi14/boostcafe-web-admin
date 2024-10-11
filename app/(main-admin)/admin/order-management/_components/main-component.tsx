@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface Order {
   id: string;
   customerName: string;
+  restaurantName: string;
   orderDate: string;
   status: "Pending" | "Processing" | "Completed" | "Cancelled";
   totalAmount: number;
@@ -33,6 +34,7 @@ export const OrderMainComponent: React.FC = () => {
         {
           id: "ORD-001",
           customerName: "John Doe",
+          restaurantName: "Boost Cafe",
           orderDate: "2024-10-01",
           status: "Pending",
           totalAmount: 150.5,
@@ -40,6 +42,7 @@ export const OrderMainComponent: React.FC = () => {
         {
           id: "ORD-002",
           customerName: "Jane Smith",
+          restaurantName: "Boost Cafe",
           orderDate: "2024-10-02",
           status: "Processing",
           totalAmount: 200.0,
@@ -47,6 +50,7 @@ export const OrderMainComponent: React.FC = () => {
         {
           id: "ORD-003",
           customerName: "Alice Johnson",
+          restaurantName: "Boost Cafe",
           orderDate: "2024-10-03",
           status: "Completed",
           totalAmount: 300.75,
@@ -119,6 +123,12 @@ export const OrderMainComponent: React.FC = () => {
                       scope="col"
                       className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600  tracking-wider"
                     >
+                      Restaurant Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600  tracking-wider"
+                    >
                       Order Date
                     </th>
                     <th
@@ -152,6 +162,11 @@ export const OrderMainComponent: React.FC = () => {
                       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <p className="text-gray-900 whitespace-no-wrap">
                           {order.customerName}
+                        </p>
+                      </td>
+                      <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <p className="text-gray-900 whitespace-no-wrap">
+                          {order.restaurantName}
                         </p>
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">

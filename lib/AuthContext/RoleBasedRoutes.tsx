@@ -3,6 +3,8 @@
 import { ReactNode, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { useRouter } from "next/navigation";
+import { MoonLoader } from "react-spinners";
+
 type UserRole = "user" | "admin" | "restaurantAdmin";
 interface RoleBasedRouteProps {
   allowedRoles: UserRole[];
@@ -20,7 +22,7 @@ export function RoleBasedRoute({
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push("/login");
+        router.push("/");
       } else if (!allowedRoles.includes(user.role)) {
         router.push("/unauthorized");
       }
@@ -28,7 +30,13 @@ export function RoleBasedRoute({
   }, [user, loading, router, allowedRoles]);
 
   if (loading || !user) {
-    return <div>Loading...</div>; // Replace with a spinner or skeleton if desired
+    return (
+      <>
+        <div className=" min-h-screen w-full flex flex-row items-center justify-center">
+          <MoonLoader size={35} />
+        </div>
+      </>
+    ); // Replace with a spinner or skeleton if desired
   }
 
   return <>{children}</>;

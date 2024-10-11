@@ -12,12 +12,12 @@ export function AuthenticatedRoute({ children }: AuthenticatedRouteProps) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.push("/");
     }
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div>Loading...</div>; // You can replace this with a spinner or skeleton
+    return <div>Hello</div>; // You can replace this with a spinner or skeleton
   }
 
   return <>{children}</>;

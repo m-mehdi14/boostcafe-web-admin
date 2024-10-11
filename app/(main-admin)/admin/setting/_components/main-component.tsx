@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+// import { Switch } from "@/components/ui/switch";
+// import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/AuthContext/AuthContext";
 
 export const MainSettingComponent: React.FC = () => {
@@ -14,10 +14,10 @@ export const MainSettingComponent: React.FC = () => {
     email: "john.doe@example.com",
     bio: "Software Engineer at Example Corp.",
   });
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-  });
+  // const [notifications, setNotifications] = useState({
+  //   emailNotifications: true,
+  //   smsNotifications: false,
+  // });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -26,9 +26,9 @@ export const MainSettingComponent: React.FC = () => {
     setProfile({ ...profile, [name]: value });
   };
 
-  const handleNotificationChange = (type: string) => {
-    setNotifications({ ...notifications, [type]: !notifications[type] });
-  };
+  // const handleNotificationChange = (type: string) => {
+  //   setNotifications({ ...notifications, [type]: !notifications[type] });
+  // };
 
   const handleSaveChanges = () => {
     setLoading(true);
@@ -74,7 +74,7 @@ export const MainSettingComponent: React.FC = () => {
                   className="w-full"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Bio
                 </label>
@@ -85,7 +85,7 @@ export const MainSettingComponent: React.FC = () => {
                   className="w-full"
                   rows={4}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -118,7 +118,7 @@ export const MainSettingComponent: React.FC = () => {
         </div>
 
         {/* Notifications Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+        {/* <div className="bg-white p-6 rounded-lg shadow-md mt-6">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">
             Notification Settings
           </h2>
@@ -146,7 +146,7 @@ export const MainSettingComponent: React.FC = () => {
               />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Save Changes Button */}
         <div className="mt-6 flex justify-end">

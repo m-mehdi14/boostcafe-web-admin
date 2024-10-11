@@ -33,6 +33,11 @@ export const Navigation = () => {
       icon: ShieldBan,
     },
     {
+      label: "Analytics & Reports",
+      href: `/admin/analysis`,
+      icon: Users,
+    },
+    {
       label: "Setting",
       href: `/admin/setting`,
       icon: Users,

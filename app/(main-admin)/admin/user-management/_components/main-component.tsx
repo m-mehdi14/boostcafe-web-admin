@@ -181,12 +181,12 @@ export const UserMainComponent: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
-                        <Button variant="link" className="text-blue-600">
+                        {/* <Button variant="link" className="text-blue-600">
                           View
                         </Button>
                         <Button variant="link" className="text-blue-600 ml-2">
                           Edit
-                        </Button>
+                        </Button> */}
                         <Button variant="link" className="text-red-600 ml-2">
                           Delete
                         </Button>
