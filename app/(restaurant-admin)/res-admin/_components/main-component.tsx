@@ -3,8 +3,10 @@ import { RoleBasedRoute } from "@/lib/AuthContext/RoleBasedRoutes";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card"; // Assuming you have a Card component or create a simple div with card styles
+import { useRouter } from "next/navigation";
 
 export const RestaurantAdminComponent: React.FC = () => {
+  const router = useRouter();
   return (
     <>
       <RoleBasedRoute allowedRoles={["restaurantAdmin"]}>
@@ -28,7 +30,10 @@ export const RestaurantAdminComponent: React.FC = () => {
                 Update restaurant information, contact details, and opening
                 hours.
               </p>
-              <Button className="bg-blue-600 text-white w-full">
+              <Button
+                onClick={() => router.push("/res-admin/profile")}
+                className="bg-blue-600 text-white w-full"
+              >
                 Manage Profile
               </Button>
             </Card>
@@ -41,7 +46,10 @@ export const RestaurantAdminComponent: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Add, edit, or remove menu items to keep your menu up-to-date.
               </p>
-              <Button className="bg-green-600 text-white w-full">
+              <Button
+                onClick={() => router.push("/res-admin/menu")}
+                className="bg-green-600 text-white w-full"
+              >
                 Manage Menu
               </Button>
             </Card>
@@ -54,7 +62,10 @@ export const RestaurantAdminComponent: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 View and update the status of customer orders in real-time.
               </p>
-              <Button className="bg-yellow-600 text-white w-full">
+              <Button
+                onClick={() => router.push("/res-admin/order")}
+                className="bg-yellow-600 text-white w-full"
+              >
                 Manage Orders
               </Button>
             </Card>
