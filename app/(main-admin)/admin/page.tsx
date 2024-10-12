@@ -4,9 +4,11 @@ import { RoleBasedRoute } from "@/lib/AuthContext/RoleBasedRoutes";
 import React from "react";
 import { AddRestaurant } from "./_components/Add-restaurant";
 import { getTotalRestaurants } from "@/actions/get-total-restaurants";
+import { getTotalUsers } from "@/actions/get-total-users";
 
 const MainAdminPage = async () => {
   const totalRestaurants = await getTotalRestaurants();
+  const totalUsers = await getTotalUsers();
   console.log("🚀 ~ MainAdminPage ~ totalRestaurants:", totalRestaurants);
   return (
     <>
@@ -39,10 +41,10 @@ const MainAdminPage = async () => {
               <p className="mt-1 text-2xl font-bold text-gray-800">345</p>
             </div>
             <div className="p-5 bg-white rounded-lg shadow">
-              <h2 className="text-sm font-medium text-gray-500">
-                Active Users
-              </h2>
-              <p className="mt-1 text-2xl font-bold text-gray-800">1,200</p>
+              <h2 className="text-sm font-medium text-gray-500">Users</h2>
+              <p className="mt-1 text-2xl font-bold text-gray-800">
+                {totalUsers.data ? totalUsers.data : 0}
+              </p>
             </div>
             <div className="p-5 bg-white rounded-lg shadow">
               <h2 className="text-sm font-medium text-gray-500">

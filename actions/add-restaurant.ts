@@ -46,6 +46,21 @@ export async function addRestaurant(data: RestaurantData) {
     return { success: true, message: "Restaurant added successfully." };
   } catch (error) {
     console.error("Error adding restaurant:", error);
-    return { success: false, message: "Failed to add restaurant." };
+    if (axios.isAxiosError(error)) {
+      // Handle specific errors from Firebase Authentication API
+      console.error("Error creating Firebase user:", error.response?.data);
+      return {
+        success: false,
+        message:
+          error.response?.data?.error?.message ||
+          "Failed to create Firebase user.",
+      };
+    } else {
+      console.error("Error adding restaurant:", error);
+      return {
+        success: false,
+        message: "Failed to add restaurant. Please try again.",
+      };
+    }
   }
 }
