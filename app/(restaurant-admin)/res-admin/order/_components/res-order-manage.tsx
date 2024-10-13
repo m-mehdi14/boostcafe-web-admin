@@ -65,7 +65,7 @@ export const RestaurantOrderManagement: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-semibold text-gray-800">
             Order Management
@@ -146,7 +146,7 @@ export const RestaurantOrderManagement: React.FC = () => {
               </div>
             </div>
           ))} */}
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
+          <div className="bg-white p-6 rounded-lg  flex flex-col items-center justify-center text-center">
             <div className="flex justify-center items-center w-20 h-20 bg-blue-100 rounded-full mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

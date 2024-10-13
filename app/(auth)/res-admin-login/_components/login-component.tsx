@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FirebaseError } from "firebase/app";
 import Logo from "@/public/boost-cafe.png";
 import Image from "next/image";
+import { toast } from "sonner";
 
 // Define the schema using Zod
 const formSchema = z.object({
@@ -81,6 +82,7 @@ export function LoginRestaurantComponent() {
 
       // Sign in with Firebase Authentication
       await signInWithEmailAndPassword(auth, data.email, data.password);
+      toast.success("Login Successfully");
       // Redirect to the admin dashboard
       router.push("/res-admin");
     } catch (err) {

@@ -96,7 +96,7 @@ export const MainSettingComponent: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Profile Information Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg ">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Profile Information
             </h2>
@@ -138,7 +138,7 @@ export const MainSettingComponent: React.FC = () => {
           </div>
 
           {/* Password Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg ">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Change Password
             </h2>

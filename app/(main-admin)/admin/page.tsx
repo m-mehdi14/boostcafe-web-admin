@@ -17,7 +17,7 @@ const MainAdminPage = async () => {
           {/* Dashboard Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-semibold text-gray-800">
-              Restaurant Management Dashboard
+              Management Dashboard
             </h1>
             <p className="text-gray-600">
               Manage restaurants, orders, users, and other settings
@@ -38,7 +38,7 @@ const MainAdminPage = async () => {
               <h2 className="text-sm font-medium text-gray-500">
                 Total Orders
               </h2>
-              <p className="mt-1 text-2xl font-bold text-gray-800">345</p>
+              <p className="mt-1 text-2xl font-bold text-gray-800">0</p>
             </div>
             <div className="p-5 bg-white rounded-lg shadow">
               <h2 className="text-sm font-medium text-gray-500">Users</h2>
@@ -50,7 +50,7 @@ const MainAdminPage = async () => {
               <h2 className="text-sm font-medium text-gray-500">
                 Monthly Revenue
               </h2>
-              <p className="mt-1 text-2xl font-bold text-gray-800">$45,000</p>
+              <p className="mt-1 text-2xl font-bold text-gray-800">$0</p>
             </div>
           </div>
           <AddRestaurant />

@@ -192,7 +192,7 @@ export const RestaurantMenuComponent: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-semibold text-gray-800">
             Restaurant Menu
@@ -217,7 +217,7 @@ export const RestaurantMenuComponent: React.FC = () => {
             {menuItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-gray-100 p-4 rounded-lg shadow-md flex justify-between items-center"
+                className="bg-gray-100 p-4 rounded-lg shadow-md flex justify-between items-center w-full"
               >
                 <div className=" flex flex-row">
                   {item.image && (
