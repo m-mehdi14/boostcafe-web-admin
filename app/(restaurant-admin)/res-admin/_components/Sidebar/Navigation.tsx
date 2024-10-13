@@ -14,8 +14,13 @@ export const Navigation = () => {
   const routes = [
     {
       label: "Home",
-      href: `/res-admin`,
+      href: `/`,
       icon: Fullscreen,
+    },
+    {
+      label: "Restaurant Management",
+      href: `/res-admin`,
+      icon: UserCircle,
     },
     {
       label: "Profile Management",

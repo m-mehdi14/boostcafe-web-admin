@@ -36,13 +36,13 @@ export default function RoleBasedContent() {
             </p>
             <div className="flex gap-4 mt-6">
               <Button
-                onClick={() => router.push("/admin-dashboard")}
+                onClick={() => router.push("/admin")}
                 className="bg-white text-gray-800 hover:bg-gray-200"
               >
                 Go to Dashboard
               </Button>
               <Button
-                onClick={() => router.push("/analytics")}
+                onClick={() => router.push("/admin/analysis")}
                 className="bg-blue-500 hover:bg-blue-600 text-white"
               >
                 View Analytics
@@ -71,16 +71,16 @@ export default function RoleBasedContent() {
             </p>
             <div className="flex gap-4 mt-6">
               <Button
-                onClick={() => router.push("/res-dashboard")}
+                onClick={() => router.push("/res-admin")}
                 className="bg-white text-gray-800 hover:bg-gray-200"
               >
                 Go to Dashboard
               </Button>
               <Button
-                onClick={() => router.push("/promotions")}
+                onClick={() => router.push("/res-admin/menu")}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
-                Manage Promotions
+                Manage Menu
               </Button>
             </div>
           </div>

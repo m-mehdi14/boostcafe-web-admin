@@ -39,22 +39,22 @@ export const OrderMainComponent: React.FC = () => {
           status: "Pending",
           totalAmount: 150.5,
         },
-        {
-          id: "ORD-002",
-          customerName: "Jane Smith",
-          restaurantName: "Boost Cafe",
-          orderDate: "2024-10-02",
-          status: "Processing",
-          totalAmount: 200.0,
-        },
-        {
-          id: "ORD-003",
-          customerName: "Alice Johnson",
-          restaurantName: "Boost Cafe",
-          orderDate: "2024-10-03",
-          status: "Completed",
-          totalAmount: 300.75,
-        },
+        // {
+        //   id: "ORD-002",
+        //   customerName: "Jane Smith",
+        //   restaurantName: "Boost Cafe",
+        //   orderDate: "2024-10-02",
+        //   status: "Processing",
+        //   totalAmount: 200.0,
+        // },
+        // {
+        //   id: "ORD-003",
+        //   customerName: "Alice Johnson",
+        //   restaurantName: "Boost Cafe",
+        //   orderDate: "2024-10-03",
+        //   status: "Completed",
+        //   totalAmount: 300.75,
+        // },
       ]);
       setLoading(false);
     }, 1000);
