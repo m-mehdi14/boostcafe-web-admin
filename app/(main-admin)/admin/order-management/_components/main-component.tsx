@@ -9,6 +9,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MdDeleteForever, MdEdit } from "react-icons/md";
+import { FiEye } from "react-icons/fi";
 
 // Dummy data for orders
 interface Order {
@@ -198,15 +200,29 @@ export const OrderMainComponent: React.FC = () => {
                           ${order.totalAmount.toFixed(2)}
                         </p>
                       </td>
-                      <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
-                        <Button variant="link" className="text-blue-600">
-                          View
+                      <td className="px-5 py-5 border-b flex flex-row items-center border-gray-200 bg-white text-sm text-right">
+                        <Button
+                          variant="link"
+                          className="text-blue-600 flex items-center"
+                        >
+                          <FiEye className="mr-1" size={20} /> {/* View icon */}
+                          {/* View */}
                         </Button>
-                        <Button variant="link" className="text-blue-600 ml-2">
-                          Edit
+                        <Button
+                          variant="link"
+                          className="text-blue-600 ml-2 flex items-center"
+                        >
+                          <MdEdit size={20} className="mr-1" />{" "}
+                          {/* Edit icon */}
+                          {/* Edit */}
                         </Button>
-                        <Button variant="link" className="text-red-600 ml-2">
-                          Delete
+                        <Button
+                          variant="link"
+                          className="text-red-600 ml-2 flex items-center"
+                        >
+                          <MdDeleteForever size={20} className="mr-1" />{" "}
+                          {/* Delete icon */}
+                          {/* Delete */}
                         </Button>
                       </td>
                     </tr>

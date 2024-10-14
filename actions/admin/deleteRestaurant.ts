@@ -2,6 +2,7 @@
 "use server";
 
 import axios from "axios";
+import { revalidatePath } from "next/cache";
 
 // Define the input type for deleting a restaurant
 interface DeleteRestaurantData {
@@ -31,7 +32,7 @@ export async function deleteRestaurant(
         message: response.data.success || "Restaurant deleted successfully!",
       };
     }
-
+    revalidatePath("/admin");
     return {
       success: false,
       message: "Failed to delete restaurant. Please try again.",

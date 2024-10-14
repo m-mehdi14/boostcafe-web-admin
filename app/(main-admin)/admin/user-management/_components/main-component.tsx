@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// app/components/UserMainComponent.tsx
 "use client";
-
 import React, { useEffect, useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,61 +11,109 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUsers } from "@/actions/admin/get-users-data"; // Import the server action
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { getUsers } from "@/actions/admin/get-users-data";
+import AddUserDialog from "@/components/AddUserDialog"; // Add User dialog component
+import EditUserDialog from "@/components/EditUserDialog"; // Edit User dialog component
+import { deleteUser } from "@/actions/admin/deleteUser"; // Import deleteUser function
+import { toast } from "sonner"; // Import toast for notifications
+import ConfirmDialog from "@/components/ConfirmDialog"; // Import ConfirmDialog component
 
-// Define the User interface with strict types
+// Define the User type with strict role values as admin or user
 interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "User" | "Moderator";
+  role: "admin" | "user"; // Only admin and user roles
   status: "Active" | "Inactive" | "Banned";
 }
 
 export const UserMainComponent: React.FC = () => {
-  // Define state types explicitly
-  const [users, setUsers] = useState<User[]>([]); // User[] is an array of User objects
-  const [loading, setLoading] = useState<boolean>(true); // Boolean to track loading
-  const [error, setError] = useState<string | null>(null); // String or null for error handling
-  const [searchQuery, setSearchQuery] = useState<string>(""); // String for search input
-  const [selectedRole, setSelectedRole] = useState<
-    "All" | "admin" | "User" | "Moderator"
-  >("All"); // Selected role with strict typing
+  const [users, setUsers] = useState<User[]>([]); // State to store users
+  const [loading, setLoading] = useState<boolean>(true); // State for loading indicator
+  const [error, setError] = useState<string | null>(null); // State for errors
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Search input state
+  const [selectedRole, setSelectedRole] = useState<"All" | "admin" | "user">(
+    "All"
+  ); // State for role filter
+  const [selectedUser, setSelectedUser] = useState<User | null>(null); // State for selected user to edit
 
-  // Fetch users using server action with proper error handling
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false); // State for delete confirmation dialog
+  const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null); // State for tracking which user to delete
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+
+  // Use effect to fetch users on component mount
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // @ts-ignore
-        const data: User[] = await getUsers(); // Fetch users and expect an array of User objects
-        setUsers(data);
-        // @ts-ignore
-      } catch (err: unknown) {
-        setError("Failed to load users. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
 
-  // Handle search input change with correct type for the event
+  // Function to fetch users
+  const fetchUsers = async () => {
+    setLoading(true); // Set loading to true
+    setError(null); // Reset any previous errors
+    try {
+      // @ts-ignore
+      const data: User[] = await getUsers(); // Fetch users
+      setUsers(data); // Update users state
+      // @ts-ignore
+    } catch (err) {
+      setError("Failed to load users. Please try again."); // Handle errors
+    } finally {
+      setLoading(false); // Set loading to false
+    }
+  };
+
+  // Function to refresh users list after user actions
+  const refreshUsers = () => {
+    fetchUsers();
+  };
+
+  // Function to handle search input changes
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
   };
 
-  // Handle role filter change with correct type for role
-  const handleRoleFilterChange = (
-    role: "All" | "Admin" | "User" | "Moderator"
-  ) => {
-    // @ts-ignore
+  // Function to handle role filter changes
+  const handleRoleFilterChange = (role: "All" | "admin" | "user") => {
     setSelectedRole(role);
   };
 
-  // Filter users by search query and selected role
+  // Function to handle user deletion
+  const handleDeleteUser = async (userId: string) => {
+    const response = await deleteUser({ userId });
+    if (response.success) {
+      setUsers(users.filter((user) => user.id !== userId)); // Update users state to remove deleted user
+      toast.success("User deleted successfully."); // Show success toast
+
+      closeDeleteDialog(); // Close dialog
+    } else {
+      toast.error(response.message); // Show error toast
+    }
+  };
+
+  // Function to open the delete confirmation dialog
+  const openDeleteDialog = (userId: string) => {
+    setUserIdToDelete(userId);
+    setDeleteDialogOpen(true);
+  };
+
+  // Function to close the delete confirmation dialog
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setUserIdToDelete(null);
+  };
+
+  // Function to confirm and delete a user
+  const confirmDelete = () => {
+    if (userIdToDelete) {
+      setIsLoadingDelete(true);
+      handleDeleteUser(userIdToDelete); // Delete user
+      setIsLoadingDelete(false);
+      // closeDeleteDialog(); // Close dialog
+    }
+  };
+
+  // Filter users based on search query and role filter
   const filteredUsers: User[] = users.filter((user: User) => {
     const matchesSearchQuery = user.name
       .toLowerCase()
@@ -102,13 +148,25 @@ export const UserMainComponent: React.FC = () => {
                   All
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  // @ts-ignore
                   onClick={() => handleRoleFilterChange("admin")}
                 >
                   Admin
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleRoleFilterChange("user")}
+                >
+                  User
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Add User Dialog */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Add User</Button>
+              </DialogTrigger>
+              <AddUserDialog refreshUsers={refreshUsers} />
+            </Dialog>
           </div>
         </div>
 
@@ -130,34 +188,19 @@ export const UserMainComponent: React.FC = () => {
               <table className="min-w-full leading-normal">
                 <thead>
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider"
-                    >
+                    <th className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider">
                       User ID
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider"
-                    >
+                    <th className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider">
                       Name
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider"
-                    >
+                    <th className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider">
                       Email
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider"
-                    >
+                    <th className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-left text-sm font-semibold text-gray-600 tracking-wider">
                       Role
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-right text-sm font-semibold text-gray-600 tracking-wider"
-                    >
+                    <th className="px-6 py-4 border-b-2 border-gray-300 bg-gray-100 text-right text-sm font-semibold text-gray-600 tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -186,9 +229,35 @@ export const UserMainComponent: React.FC = () => {
                         </p>
                       </td>
                       <td className="px-6 py-4 border-b border-gray-200 bg-white text-sm text-right">
-                        <Button variant="link" className="text-red-600 ml-2">
-                          Delete
-                        </Button>
+                        <div className="flex justify-end space-x-3">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="link"
+                                className="text-blue-600 ml-2"
+                                onClick={() => setSelectedUser(user)}
+                              >
+                                Edit
+                              </Button>
+                            </DialogTrigger>
+                            {selectedUser && (
+                              <EditUserDialog
+                                user={selectedUser}
+                                refreshUsers={refreshUsers}
+                              />
+                            )}
+                          </Dialog>
+
+                          {/* Delete Button */}
+                          <Button
+                            variant="link"
+                            className="text-red-600"
+                            onClick={() => openDeleteDialog(user.id)}
+                            disabled={isLoadingDelete}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -198,6 +267,16 @@ export const UserMainComponent: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        title="Confirm Delete"
+        description="Are you sure you want to delete this user?"
+        isOpen={isDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteDialog}
+        isLoading={isLoadingDelete}
+      />
     </div>
   );
 };

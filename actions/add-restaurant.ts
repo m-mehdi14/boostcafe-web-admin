@@ -6,13 +6,14 @@ import { doc, setDoc } from "firebase/firestore";
 import axios from "axios";
 import { revalidatePath } from "next/cache";
 
-// Define the data type for the restaurant
+// Define the data type for the restaurant and creator
 interface RestaurantData {
   name: string;
   phone: string;
   email: string;
   address: string;
   password: string;
+  creatorId: string; // Add creatorId to track who added the restaurant
 }
 
 export async function addRestaurant(data: RestaurantData) {
@@ -41,8 +42,11 @@ export async function addRestaurant(data: RestaurantData) {
       status: "Active",
       role: "restaurantAdmin",
       createdAt: new Date().toISOString(),
+      createdBy: data.creatorId, // Save the ID of the user who created this restaurant
     });
+
     revalidatePath("/admin");
+
     return { success: true, message: "Restaurant added successfully." };
   } catch (error) {
     console.error("Error adding restaurant:", error);

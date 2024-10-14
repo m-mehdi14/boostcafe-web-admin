@@ -26,6 +26,11 @@ import { addRestaurant } from "@/actions/add-restaurant";
 import { editRestaurant } from "@/actions/admin/editRestaurant";
 import { deleteRestaurant } from "@/actions/admin/deleteRestaurant";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/AuthContext/AuthContext";
+import { FiKey, FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { changeRestaurantPassword } from "@/actions/admin/change-res-pass";
+import { MdDeleteForever, MdEdit } from "react-icons/md";
+import { Hint } from "@/components/hint";
 import { GetRestaurants } from "@/actions/get-restaurant";
 
 // Define the form schema using Zod
@@ -40,7 +45,21 @@ const formSchema = z.object({
     .optional(),
 });
 
+// Define the form schema for password change
+const passwordFormSchema = z
+  .object({
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z
+      .string()
+      .min(6, "Password must be at least 6 characters"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 type AddRestaurantFormValues = z.infer<typeof formSchema>;
+type ChangePasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 interface Restaurant {
   id: string;
@@ -58,10 +77,15 @@ interface ApiResponse<T> {
 }
 
 export const AddRestaurant: React.FC = () => {
+  const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState<boolean>(false); // For password change dialog
   const [loadingAdd, setLoadingAdd] = useState<boolean>(false); // For adding restaurant
   const [loadingEdit, setLoadingEdit] = useState<boolean>(false); // For editing restaurant
+  const [loadingPassword, setLoadingPassword] = useState<boolean>(false); // For password change
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null); // Track the restaurant being deleted
   const [restaurantData, setRestaurantData] = useState<Restaurant[]>([]);
   const [currentRestaurantId, setCurrentRestaurantId] = useState<string | null>(
@@ -90,6 +114,14 @@ export const AddRestaurant: React.FC = () => {
     },
   });
 
+  const passwordForm = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
   // Fetch restaurant data
   const fetchRestaurantData = async (): Promise<void> => {
     setFetching(true);
@@ -108,13 +140,43 @@ export const AddRestaurant: React.FC = () => {
     fetchRestaurantData();
   }, []);
 
+  // Function to handle password update
+  const handleChangePassword = async (
+    data: ChangePasswordFormValues
+  ): Promise<void> => {
+    setLoadingPassword(true);
+    const result: ApiResponse<null> = await changeRestaurantPassword({
+      adminId: currentRestaurantId!,
+      newPassword: data.newPassword,
+      creatorId: user?.uid || ("" as string),
+    });
+
+    if (result.success) {
+      toast.success(result.message || "Password updated successfully.");
+      setPasswordDialogOpen(false);
+      passwordForm.reset();
+    } else {
+      toast.error(result.message || "Failed to update password.");
+    }
+    setLoadingPassword(false);
+  };
+
+  // Function to open password change dialog
+  const handleChangePasswordClick = (restaurant: Restaurant) => {
+    setCurrentRestaurantId(restaurant.id);
+    setPasswordDialogOpen(true);
+  };
+
   // Function to add a new restaurant
   const handleAddRestaurant = async (
     data: AddRestaurantFormValues
   ): Promise<void> => {
     setLoadingAdd(true);
     // @ts-ignore
-    const result: ApiResponse<null> = await addRestaurant(data);
+    const result: ApiResponse<null> = await addRestaurant({
+      ...data,
+      creatorId: user?.uid || ("" as string),
+    });
 
     if (result.success) {
       toast.success(result.message || "Restaurant added successfully.");
@@ -155,7 +217,7 @@ export const AddRestaurant: React.FC = () => {
 
   // Function to handle when Edit button is clicked
   const handleEditClick = (restaurant: Restaurant) => {
-    setCurrentRestaurantId(restaurant.id); // Ensuring we use the correct ID here
+    setCurrentRestaurantId(restaurant.id);
     editForm.setValue("name", restaurant.name);
     editForm.setValue("phone", restaurant.phone);
     editForm.setValue("email", restaurant.email);
@@ -175,7 +237,7 @@ export const AddRestaurant: React.FC = () => {
       toast.error(result.message || "Failed to delete restaurant.");
     }
 
-    setDeletingId(null); // Reset delete state
+    setDeletingId(null);
   };
 
   return (
@@ -189,13 +251,29 @@ export const AddRestaurant: React.FC = () => {
             setDialogOpen(true);
             addForm.reset(); // Reset form before opening
           }}
-          className="px-4 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          className="flex items-center justify-center px-4 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
         >
+          <FiPlus className="mr-2 text-lg" /> {/* Icon with margin */}
           Add New Restaurant
         </Button>
+
         <div className="mt-6">
           {fetching ? (
-            <Skeleton className="w-full h-20" />
+            <>
+              <Skeleton className="w-full h-12 mb-4" />
+              <Skeleton className="w-full h-12 mb-4" />
+              <Skeleton className="w-full h-12 mb-4" />
+            </>
+          ) : restaurantData.length === 0 ? (
+            <div className="p-6 text-center bg-red-50 border border-red-400 rounded-lg">
+              <h3 className="text-xl font-semibold text-red-600">
+                No Restaurants Found
+              </h3>
+              <p className="text-gray-700">
+                You currently have no restaurants added. Please use the button
+                above to add a new restaurant.
+              </p>
+            </div>
           ) : (
             <table className="w-full table-auto">
               <thead>
@@ -240,7 +318,7 @@ export const AddRestaurant: React.FC = () => {
                         {restaurant.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 space-x-2">
                       <Button
                         onClick={() => handleEditClick(restaurant)}
                         className="px-3 py-1 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
@@ -248,9 +326,25 @@ export const AddRestaurant: React.FC = () => {
                       >
                         {loadingEdit &&
                         currentRestaurantId === restaurant.id ? (
-                          <Skeleton className="h-4 w-12 mx-auto" />
+                          <Skeleton className="h-4 w-4  mx-auto" />
                         ) : (
-                          "Edit"
+                          <Hint label="Edit" side="top">
+                            <MdEdit size={20} />
+                          </Hint>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => handleChangePasswordClick(restaurant)}
+                        className=" px-3 py-1 text-sm text-white bg-yellow-600 rounded-lg hover:bg-yellow-700"
+                        disabled={loadingPassword}
+                      >
+                        {loadingPassword &&
+                        currentRestaurantId === restaurant.id ? (
+                          <Skeleton className="h-4 w-4  mx-auto" />
+                        ) : (
+                          <Hint label="Change Password" side="top">
+                            <FiKey className="" size={20} />
+                          </Hint>
                         )}
                       </Button>
                       <Button
@@ -259,9 +353,11 @@ export const AddRestaurant: React.FC = () => {
                         disabled={deletingId === restaurant.id}
                       >
                         {deletingId === restaurant.id ? (
-                          <Skeleton className="h-4 w-12 mx-auto" />
+                          <Skeleton className="h-4 w-4 mx-auto" />
                         ) : (
-                          "Delete"
+                          <Hint label="Delete Restaurant" side="top">
+                            <MdDeleteForever size={20} />
+                          </Hint>
                         )}
                       </Button>
                     </td>
@@ -272,6 +368,103 @@ export const AddRestaurant: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Password Change Dialog */}
+      <Dialog
+        open={passwordDialogOpen}
+        onOpenChange={() => {
+          setPasswordDialogOpen(false);
+          passwordForm.reset();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Restaurant Password</DialogTitle>
+            <DialogDescription>
+              Please enter the new password below to update it for the
+              restaurant.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...passwordForm}>
+            <form
+              onSubmit={passwordForm.handleSubmit(handleChangePassword)}
+              className="space-y-4"
+            >
+              <FormItem>
+                <FormLabel>New Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      disabled={loadingPassword}
+                      {...passwordForm.register("newPassword")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                    >
+                      {showPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {passwordForm.formState.errors.newPassword?.message}
+                </FormMessage>
+              </FormItem>
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm new password"
+                      disabled={loadingPassword}
+                      {...passwordForm.register("confirmPassword")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                    >
+                      {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {passwordForm.formState.errors.confirmPassword?.message}
+                </FormMessage>
+              </FormItem>
+
+              <div className="flex justify-end mt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setPasswordDialogOpen(false)}
+                  className="mr-4"
+                  disabled={loadingPassword}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={loadingPassword}
+                >
+                  {loadingPassword ? (
+                    <Skeleton className="h-4 w-20 mx-auto" />
+                  ) : (
+                    "Change Password"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog for Adding a Restaurant */}
       <Dialog
@@ -350,12 +543,21 @@ export const AddRestaurant: React.FC = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter password"
-                    disabled={loadingAdd}
-                    {...addForm.register("password")}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      disabled={loadingAdd}
+                      {...addForm.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                    >
+                      {showPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage>
                   {addForm.formState.errors.password?.message}
