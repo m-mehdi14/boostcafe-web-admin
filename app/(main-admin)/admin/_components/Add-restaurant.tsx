@@ -27,11 +27,12 @@ import { editRestaurant } from "@/actions/admin/editRestaurant";
 import { deleteRestaurant } from "@/actions/admin/deleteRestaurant";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext/AuthContext";
-import { FiKey, FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiKey, FiPlus, FiEye, FiEyeOff, FiUpload } from "react-icons/fi";
 import { changeRestaurantPassword } from "@/actions/admin/change-res-pass";
 import { MdDeleteForever, MdEdit } from "react-icons/md";
 import { Hint } from "@/components/hint";
 import { GetRestaurants } from "@/actions/get-restaurant";
+import Image from "next/image";
 
 // Define the form schema using Zod
 const formSchema = z.object({
@@ -43,6 +44,7 @@ const formSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters")
     .optional(),
+  imageBase64: z.string().optional(), // Image as Base64 (optional for edit mode)
 });
 
 // Define the form schema for password change
@@ -67,6 +69,7 @@ interface Restaurant {
   phone: string;
   email: string;
   address: string;
+  imageUrl: string; // Image URL to show uploaded image
   status: "Active" | "Inactive";
 }
 
@@ -101,8 +104,11 @@ export const AddRestaurant: React.FC = () => {
       email: "",
       address: "",
       password: "",
+      imageBase64: "",
     },
   });
+
+  console.log("Add Form Image ---- > ", addForm.watch("imageBase64"));
 
   const editForm = useForm<AddRestaurantFormValues>({
     resolver: zodResolver(formSchema),
@@ -111,8 +117,11 @@ export const AddRestaurant: React.FC = () => {
       phone: "",
       email: "",
       address: "",
+      imageBase64: "",
     },
   });
+
+  console.log("Edit Form Image ---- > ", editForm.watch("imageBase64"));
 
   const passwordForm = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -121,6 +130,20 @@ export const AddRestaurant: React.FC = () => {
       confirmPassword: "",
     },
   });
+
+  // This function should be correctly capturing the file and converting it to Base64
+  const handleImageChange = (file: File) => {
+    if (file) {
+      console.log("Selected image file:", file); // Debugging log
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        addForm.setValue("imageBase64", base64String); // Store the Base64 string in form data
+        editForm.setValue("imageBase64", base64String);
+      };
+      reader.readAsDataURL(file); // Read the file as Data URL (Base64)
+    }
+  };
 
   // Fetch restaurant data
   const fetchRestaurantData = async (): Promise<void> => {
@@ -201,6 +224,7 @@ export const AddRestaurant: React.FC = () => {
       phone: data.phone,
       email: data.email,
       address: data.address,
+      imageBase64: data.imageBase64,
     });
 
     if (result.success) {
@@ -222,6 +246,7 @@ export const AddRestaurant: React.FC = () => {
     editForm.setValue("phone", restaurant.phone);
     editForm.setValue("email", restaurant.email);
     editForm.setValue("address", restaurant.address);
+    editForm.setValue("imageBase64", restaurant.imageUrl || ""); // Prefill with existing image URL (if available)
     setEditDialogOpen(true);
   };
 
@@ -298,7 +323,24 @@ export const AddRestaurant: React.FC = () => {
               <tbody>
                 {restaurantData.map((restaurant) => (
                   <tr key={restaurant.id} className="border-b">
-                    <td className="px-4 py-2 text-gray-600">
+                    <td className="px-4 py-2 text-gray-600 flex flex-row items-center">
+                      <div className="">
+                        {restaurant.imageUrl ? (
+                          <>
+                            <Image
+                              src={restaurant.imageUrl}
+                              alt={restaurant.name}
+                              width={70}
+                              height={70}
+                              className=" mr-7 rounded-xl shadow-md"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Skeleton className=" h-[70px] w-[70px] rounded-lg mr-7" />
+                          </>
+                        )}
+                      </div>
                       {restaurant.name}
                     </td>
                     <td className="px-4 py-2 text-gray-600">
@@ -564,6 +606,44 @@ export const AddRestaurant: React.FC = () => {
                 </FormMessage>
               </FormItem>
 
+              {/* Image Upload */}
+              <FormItem>
+                <FormLabel>Restaurant Image</FormLabel>
+                <FormControl>
+                  <div className="flex items-center">
+                    <Button
+                      type="button"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                      onClick={() =>
+                        document.getElementById("restaurant-image")?.click()
+                      }
+                    >
+                      <FiUpload size={20} /> {/* Upload Icon */}
+                      Upload Image
+                    </Button>
+                    <span className="ml-4">
+                      {addForm.watch("imageBase64")
+                        ? "Image selected"
+                        : "No image selected"}
+                    </span>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      id="restaurant-image"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        //@ts-ignore
+                        if (file) handleImageChange(file, addForm.setValue);
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {addForm.formState.errors.imageBase64?.message}
+                </FormMessage>
+              </FormItem>
+
               <div className="flex justify-end mt-4">
                 <Button
                   type="button"
@@ -663,6 +743,48 @@ export const AddRestaurant: React.FC = () => {
                 </FormControl>
                 <FormMessage>
                   {editForm.formState.errors.address?.message}
+                </FormMessage>
+              </FormItem>
+              {/* Image Upload */}
+              <FormItem>
+                <FormLabel>Restaurant Image</FormLabel>
+                <FormControl>
+                  <div className="flex items-center">
+                    {/* Custom Button with Icon */}
+                    <Button
+                      type="button"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                      onClick={() =>
+                        document.getElementById("restaurant-image")?.click()
+                      }
+                    >
+                      <FiUpload size={20} /> {/* Upload Icon */}
+                      <span>Upload Image</span>
+                    </Button>
+
+                    {/* Display whether an image has been selected */}
+                    <span className="ml-4">
+                      {editForm.watch("imageBase64")
+                        ? "Image selected"
+                        : "No image selected"}
+                    </span>
+
+                    {/* Hidden Input Field */}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      id="restaurant-image"
+                      style={{ display: "none" }} // Hiding the input field
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        //@ts-ignore
+                        if (file) handleImageChange(file, editForm.setValue);
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {editForm.formState.errors.imageBase64?.message}
                 </FormMessage>
               </FormItem>
 
