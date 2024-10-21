@@ -55,7 +55,6 @@ export const UserMainComponent: React.FC = () => {
       // @ts-ignore
       const data: User[] = await getUsers(); // Fetch users
       setUsers(data); // Update users state
-      // @ts-ignore
     } catch (err) {
       setError("Failed to load users. Please try again."); // Handle errors
     } finally {
@@ -109,15 +108,14 @@ export const UserMainComponent: React.FC = () => {
       setIsLoadingDelete(true);
       handleDeleteUser(userIdToDelete); // Delete user
       setIsLoadingDelete(false);
-      // closeDeleteDialog(); // Close dialog
     }
   };
 
   // Filter users based on search query and role filter
   const filteredUsers: User[] = users.filter((user: User) => {
     const matchesSearchQuery = user.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      ? user.name.toLowerCase().includes(searchQuery.toLowerCase())
+      : false;
     const matchesRole = selectedRole === "All" || user.role === selectedRole;
     return matchesSearchQuery && matchesRole;
   });
