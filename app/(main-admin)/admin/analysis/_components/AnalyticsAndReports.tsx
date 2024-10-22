@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { getOrders } from "@/actions/admin/get-orders"; // Import order fetching logic
+import { getRestaurantsForAnalytics } from "@/actions/admin/getRestaurants"; // Import restaurant fetching logic
 
 ChartJS.register(
   CategoryScale,
@@ -40,229 +42,219 @@ ChartJS.register(
   ArcElement
 );
 
-// Dummy data for restaurants
-const restaurants = [
-  "All Restaurants",
-  "Restaurant A",
-  "Restaurant B",
-  "Restaurant C",
-];
+interface Order {
+  orderDate: string;
+  totalAmount: number;
+  restaurantName: string;
+  cartItems: {
+    name: string;
+    quantity: number;
+  }[];
+}
 
-// Generate large dummy sales data for a full year
-const generateSalesData = () => {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const sales = Array.from(
-    { length: 12 },
-    () => Math.floor(Math.random() * 10000) + 1000
-  );
-  return {
-    labels: months,
-    datasets: [
-      {
-        label: "Sales",
-        data: sales,
-        borderColor: "#4c51bf",
-        backgroundColor: "rgba(76, 81, 191, 0.5)",
-        fill: true,
-      },
-    ],
-  };
-};
+interface SalesData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+    fill: boolean;
+  }[];
+}
 
-// Generate large dummy order trends data for 12 weeks
-const generateOrderTrendsData = () => {
-  const weeks = Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`);
-  const orders = Array.from(
-    { length: 12 },
-    () => Math.floor(Math.random() * 500) + 100
-  );
-  return {
-    labels: weeks,
-    datasets: [
-      {
-        label: "Orders",
-        data: orders,
-        backgroundColor: "#82ca9d",
-      },
-    ],
-  };
-};
+interface OrderTrendsData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string;
+  }[];
+}
 
-// Generate larger dummy top items data
-const generateTopItemsData = () => {
-  const items = [
-    "Burger",
-    "Pizza",
-    "Biryani",
-    "Pasta",
-    "Fries",
-    "Salad",
-    "Steak",
-    "Sushi",
-  ];
-  const sales = Array.from(
-    { length: items.length },
-    () => Math.floor(Math.random() * 50) + 10
-  );
-  return {
-    labels: items,
-    datasets: [
-      {
-        label: "Top Items",
-        data: sales,
-        backgroundColor: [
-          "#0088FE",
-          "#00C49F",
-          "#FFBB28",
-          "#FF8042",
-          "#FF4567",
-          "#AF19FF",
-          "#FF6F91",
-          "#FF9671",
-        ],
-      },
-    ],
-  };
-};
+interface TopItemsData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string[];
+  }[];
+}
+
+interface Restaurant {
+  id: string;
+  name: string;
+}
 
 export const AnalyticsAndReports: React.FC = () => {
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<string>("All Restaurants");
+  console.log("🚀 ~ selectedRestaurant:", selectedRestaurant);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [salesData, setSalesData] = useState<SalesData | null>(null);
+  const [orderTrendsData, setOrderTrendsData] =
+    useState<OrderTrendsData | null>(null);
+  const [topItemsData, setTopItemsData] = useState<TopItemsData | null>(null);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]); // State for restaurants
+  const [totalSales, setTotalSales] = useState<number>(0);
+  const [totalOrders, setTotalOrders] = useState<number>(0);
+  const [topSellingItem, setTopSellingItem] = useState<string>("");
 
-  const [salesData, setSalesData] = useState(generateSalesData());
-  const [orderTrendsData, setOrderTrendsData] = useState(
-    generateOrderTrendsData()
-  );
-  const [topItemsData, setTopItemsData] = useState(generateTopItemsData());
+  // Fetch and process restaurant data
+  const fetchRestaurants = async () => {
+    try {
+      // @ts-ignore
+      const restaurantsData: Restaurant[] = await getRestaurantsForAnalytics();
+      setRestaurants(restaurantsData);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+    }
+  };
 
-  // State to hold the computed total sales, total orders, and top-selling item
-  const [totalSales, setTotalSales] = useState<number>(45000);
-  const [totalOrders, setTotalOrders] = useState<number>(1250);
-  const [topSellingItem, setTopSellingItem] = useState<string>("Burger");
+  // Fetch and process the real order data based on restaurant and date filters
+  const fetchAndProcessOrders = async () => {
+    try {
+      // @ts-ignore
+      const orders: Order[] = await getOrders();
+      if (orders.length === 0) return;
 
-  // Function to handle download of the report in PDF format
+      const filteredOrders = orders.filter((order) => {
+        const orderDate = new Date(order.orderDate);
+        return (
+          (selectedRestaurant === "All Restaurants" ||
+            order.restaurantName === selectedRestaurant) &&
+          (!startDate || orderDate >= startDate) &&
+          (!endDate || orderDate <= new Date(endDate.setHours(23, 59, 59, 999))) // Ensure we include the whole day
+        );
+      });
+
+      const salesByMonth: { [key: string]: number } = {};
+      const ordersByWeek: { [key: string]: number } = {};
+      const itemSales: { [key: string]: number } = {};
+
+      filteredOrders.forEach((order) => {
+        const orderDate = new Date(order.orderDate);
+        const month = orderDate.toLocaleString("default", { month: "long" });
+        const week = `Week ${Math.ceil(orderDate.getDate() / 7)}`;
+
+        // Accumulate sales by month
+        salesByMonth[month] = (salesByMonth[month] || 0) + order.totalAmount;
+
+        // Accumulate orders by week
+        ordersByWeek[week] = (ordersByWeek[week] || 0) + 1;
+
+        // Accumulate item sales
+        order.cartItems.forEach((item) => {
+          itemSales[item.name] = (itemSales[item.name] || 0) + item.quantity;
+        });
+      });
+
+      // Update Sales Data
+      const salesLabels = Object.keys(salesByMonth);
+      const salesValues = Object.values(salesByMonth);
+      setSalesData({
+        labels: salesLabels,
+        datasets: [
+          {
+            label: "Sales",
+            data: salesValues,
+            borderColor: "#4c51bf",
+            backgroundColor: "rgba(76, 81, 191, 0.5)",
+            fill: true,
+          },
+        ],
+      });
+
+      // Update Order Trends Data
+      const orderLabels = Object.keys(ordersByWeek);
+      const orderValues = Object.values(ordersByWeek);
+      setOrderTrendsData({
+        labels: orderLabels,
+        datasets: [
+          {
+            label: "Orders",
+            data: orderValues,
+            backgroundColor: "#82ca9d",
+          },
+        ],
+      });
+
+      // Update Top Items Data
+      const itemLabels = Object.keys(itemSales);
+      const itemValues = Object.values(itemSales);
+      setTopItemsData({
+        labels: itemLabels,
+        datasets: [
+          {
+            label: "Top Items",
+            data: itemValues,
+            backgroundColor: [
+              "#0088FE",
+              "#00C49F",
+              "#FFBB28",
+              "#FF8042",
+              "#FF4567",
+              "#AF19FF",
+              "#FF6F91",
+              "#FF9671",
+            ],
+          },
+        ],
+      });
+
+      // Calculate Total Sales and Orders
+      setTotalSales(salesValues.reduce((a, b) => a + b, 0));
+      setTotalOrders(orderValues.reduce((a, b) => a + b, 0));
+
+      // Find the top-selling item
+      const topItem = itemLabels[itemValues.indexOf(Math.max(...itemValues))];
+      setTopSellingItem(topItem);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  // Function to handle report download
   const handleDownloadReport = () => {
     const doc = new jsPDF();
-    const title = `Analytics Report for ${selectedRestaurant}`;
+
+    // Title
     doc.setFontSize(18);
-    doc.text(title, 15, 20);
+    doc.text("Analytics Report", 14, 22);
 
-    const subtitle = `Date Range: ${startDate?.toLocaleDateString()} - ${endDate?.toLocaleDateString()}`;
+    // Total Sales
     doc.setFontSize(12);
-    doc.text(subtitle, 15, 30);
+    doc.text(`Total Sales: $${totalSales.toLocaleString()}`, 14, 32);
 
-    doc.setFontSize(14);
-    doc.text("Sales Data", 15, 40);
+    // Total Orders
+    doc.text(`Total Orders: ${totalOrders.toLocaleString()}`, 14, 42);
+
+    // Top-Selling Item
+    doc.text(`Top-Selling Item: ${topSellingItem}`, 14, 52);
+
+    // Add AutoTable for a detailed breakdown
     autoTable(doc, {
-      startY: 45,
       head: [["Month", "Sales"]],
-      body: salesData.labels.map((label, index) => [
-        label,
-        `$${salesData.datasets[0].data[index].toLocaleString()}`,
-      ]),
-    });
-    // @ts-ignore
-    doc.text("Order Trends", 15, doc.lastAutoTable.finalY + 10);
-    autoTable(doc, {
-      // @ts-ignore
-      startY: doc.lastAutoTable.finalY + 15,
-      head: [["Week", "Orders"]],
-      body: orderTrendsData.labels.map((label, index) => [
-        label,
-        orderTrendsData.datasets[0].data[index].toLocaleString(),
-      ]),
+      body: salesData
+        ? salesData.labels.map((label, index) => [
+            label,
+            salesData.datasets[0].data[index].toLocaleString(),
+          ])
+        : [],
     });
 
-    // @ts-ignore
-    doc.text("Top-Selling Items", 15, doc.lastAutoTable.finalY + 10);
-    autoTable(doc, {
-      // @ts-ignore
-      startY: doc.lastAutoTable.finalY + 15,
-      head: [["Item", "Sales"]],
-      body: topItemsData.labels.map((label, index) => [
-        label,
-        topItemsData.datasets[0].data[index].toLocaleString(),
-      ]),
-    });
-
-    doc.save("analytics-report.pdf");
+    doc.save("analytics_report.pdf");
   };
 
-  // Function to simulate data filtering based on the restaurant and date range
-  const filterData = () => {
-    // For demonstration, just modify the data based on selectedRestaurant
-    const multiplier = selectedRestaurant === "All Restaurants" ? 1 : 1.5;
-
-    // Update Sales Data
-    const filteredSalesData = {
-      ...salesData,
-      datasets: salesData.datasets.map((dataset) => ({
-        ...dataset,
-        data: dataset.data.map((value) => value * multiplier),
-      })),
-    };
-
-    // Calculate total sales
-    const totalSalesValue = filteredSalesData.datasets[0].data.reduce(
-      (acc, val) => acc + val,
-      0
-    );
-    setTotalSales(totalSalesValue);
-
-    // Update Order Trends Data
-    const filteredOrderTrendsData = {
-      ...orderTrendsData,
-      datasets: orderTrendsData.datasets.map((dataset) => ({
-        ...dataset,
-        data: dataset.data.map((value) => value * multiplier),
-      })),
-    };
-
-    // Calculate total orders
-    const totalOrdersValue = filteredOrderTrendsData.datasets[0].data.reduce(
-      (acc, val) => acc + val,
-      0
-    );
-    setTotalOrders(totalOrdersValue);
-
-    // Update Top Items Data
-    const filteredTopItemsData = {
-      ...topItemsData,
-      datasets: topItemsData.datasets.map((dataset) => ({
-        ...dataset,
-        data: dataset.data.map((value) => value * multiplier),
-      })),
-    };
-
-    // Find top-selling item
-    const maxSalesIndex = filteredTopItemsData.datasets[0].data.indexOf(
-      Math.max(...filteredTopItemsData.datasets[0].data)
-    );
-    setTopSellingItem(filteredTopItemsData.labels[maxSalesIndex]);
-
-    setSalesData(filteredSalesData);
-    setOrderTrendsData(filteredOrderTrendsData);
-    setTopItemsData(filteredTopItemsData);
-  };
-
-  // Re-filter data whenever restaurant or date range changes
+  // Re-fetch data when filters change
   useEffect(() => {
-    filterData();
+    fetchRestaurants(); // Fetch restaurants when component mounts
+  }, []);
+
+  useEffect(() => {
+    // Fetch data when restaurant or date range changes
+    fetchAndProcessOrders();
   }, [selectedRestaurant, startDate, endDate]);
 
   return (
@@ -295,9 +287,12 @@ export const AnalyticsAndReports: React.FC = () => {
                   <SelectValue placeholder="Select Restaurant" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="All Restaurants">
+                    All Restaurants
+                  </SelectItem>
                   {restaurants.map((restaurant) => (
-                    <SelectItem key={restaurant} value={restaurant}>
-                      {restaurant}
+                    <SelectItem key={restaurant.id} value={restaurant.id}>
+                      {restaurant.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -307,34 +302,34 @@ export const AnalyticsAndReports: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Start Date</CardTitle>
+              <CardTitle>Select Start Date</CardTitle>
             </CardHeader>
             <CardContent>
               <DatePicker
+                placeholder="Start Date"
                 selected={startDate}
                 onChange={setStartDate}
-                placeholder="Select start date"
               />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>End Date</CardTitle>
+              <CardTitle>Select End Date</CardTitle>
             </CardHeader>
             <CardContent>
               <DatePicker
+                placeholder="End Date"
                 selected={endDate}
                 onChange={setEndDate}
-                placeholder="Select end date"
               />
             </CardContent>
           </Card>
         </div>
 
-        {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gray-100">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
             <CardHeader>
               <CardTitle>Total Sales</CardTitle>
             </CardHeader>
@@ -375,7 +370,9 @@ export const AnalyticsAndReports: React.FC = () => {
               <CardTitle>Sales Over Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <Line data={salesData} options={{ responsive: true }} />
+              {salesData && (
+                <Line data={salesData} options={{ responsive: true }} />
+              )}
             </CardContent>
           </Card>
 
@@ -384,7 +381,9 @@ export const AnalyticsAndReports: React.FC = () => {
               <CardTitle>Weekly Order Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <Bar data={orderTrendsData} options={{ responsive: true }} />
+              {orderTrendsData && (
+                <Bar data={orderTrendsData} options={{ responsive: true }} />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -396,7 +395,9 @@ export const AnalyticsAndReports: React.FC = () => {
           </CardHeader>
           <CardContent className="flex justify-center">
             <div className="w-140 h-140">
-              <Pie data={topItemsData} options={{ responsive: true }} />
+              {topItemsData && (
+                <Pie data={topItemsData} options={{ responsive: true }} />
+              )}
             </div>
           </CardContent>
         </Card>
