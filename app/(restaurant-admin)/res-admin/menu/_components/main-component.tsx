@@ -192,7 +192,7 @@ export const RestaurantMenuComponent: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full">
+      <div className="bg-white p-8 rounded-lg  w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-semibold text-gray-800">
             Restaurant Menu
