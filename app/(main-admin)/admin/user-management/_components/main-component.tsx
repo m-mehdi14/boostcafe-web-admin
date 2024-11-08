@@ -11,7 +11,13 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { getUsers } from "@/actions/admin/get-users-data";
 import AddUserDialog from "@/components/AddUserDialog"; // Add User dialog component
 import EditUserDialog from "@/components/EditUserDialog"; // Edit User dialog component
@@ -41,6 +47,7 @@ export const UserMainComponent: React.FC = () => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false); // State for delete confirmation dialog
   const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null); // State for tracking which user to delete
   const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  // console.log("🚀 ~ isLoadingDelete ----- >  ", isLoadingDelete);
 
   // Use effect to fetch users on component mount
   useEffect(() => {
@@ -79,15 +86,18 @@ export const UserMainComponent: React.FC = () => {
 
   // Function to handle user deletion
   const handleDeleteUser = async (userId: string) => {
+    setIsLoadingDelete(true);
     const response = await deleteUser({ userId });
-    if (response.success) {
+    if (response.success === true) {
       setUsers(users.filter((user) => user.id !== userId)); // Update users state to remove deleted user
       toast.success("User deleted successfully."); // Show success toast
 
       closeDeleteDialog(); // Close dialog
     } else {
-      toast.error(response.message); // Show error toast
+      toast.error(response.message!); // Show error toast
     }
+
+    setIsLoadingDelete(false);
   };
 
   // Function to open the delete confirmation dialog
@@ -105,9 +115,9 @@ export const UserMainComponent: React.FC = () => {
   // Function to confirm and delete a user
   const confirmDelete = () => {
     if (userIdToDelete) {
-      setIsLoadingDelete(true);
+      // setIsLoadingDelete(true);
       handleDeleteUser(userIdToDelete); // Delete user
-      setIsLoadingDelete(false);
+      // setIsLoadingDelete(false);
     }
   };
 
@@ -266,15 +276,33 @@ export const UserMainComponent: React.FC = () => {
         </div>
       </div>
 
+      <Dialog open={isDeleteDialogOpen} onOpenChange={closeDeleteDialog}>
+        <DialogContent>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <p>Are you sure you want to delete this user ?</p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={closeDeleteDialog}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isLoadingDelete}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Confirm Delete Dialog */}
-      <ConfirmDialog
+      {/* <ConfirmDialog
         title="Confirm Delete"
         description="Are you sure you want to delete this user?"
         isOpen={isDeleteDialogOpen}
         onConfirm={confirmDelete}
         onCancel={closeDeleteDialog}
         isLoading={isLoadingDelete}
-      />
+      /> */}
     </div>
   );
 };
